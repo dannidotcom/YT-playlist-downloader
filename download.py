@@ -1,11 +1,9 @@
 import os
 import re
-import argparse
-from pytube.exceptions import PytubeError
-from pytubefix.cli import on_progress
-from pytube import Playlist 
+from pytube import Playlist
 from pytube.exceptions import PytubeError
 from pytubefix import YouTube
+from pytubefix.cli import on_progress
 
 def clean_title(title):
     """Nettoie un titre en remplaçant les caractères non alphabétiques par des tirets '-'."""
@@ -22,8 +20,6 @@ def download_video(video_url, download_path):
         video = YouTube(video_url, on_progress_callback=on_progress)
         print(f'Téléchargement en cours : {video.title}')
         video.streams.filter(progressive=True, file_extension='mp4').order_by('resolution').desc().first().download(download_path)
-                    
-        #video.streams.get_highest_resolution().download(download_path)
         print(f'Vidéo téléchargée : {video.title}')
     except KeyError as e:
         print(f"Impossible d'accéder aux détails de la vidéo : {video_url}. Erreur : {e}")
@@ -58,22 +54,25 @@ def download_playlist(playlist_url):
         print(f"Erreur inattendue lors de la création de la playlist. Détails : {e}")
 
 def main():
-    """Point d'entrée principal de l'application CLI."""
-    parser = argparse.ArgumentParser(description="Téléchargez des vidéos ou playlists depuis YouTube.")
-    parser.add_argument("url", type=str, help="URL de la vidéo ou de la playlist YouTube")
-    
-    args = parser.parse_args()
+    """Point d'entrée principal de l'application."""
+    playlist_url = input("Entrez l'URL de la vidéo ou de la playlist YouTube : ")
 
-    # Vérifier si l'URL correspond à une playlist ou une simple vidéo
-    if "list=" in args.url:
-        download_playlist(args.url)
+    if "list=" in playlist_url:
+        # Si l'URL contient une playlist
+        download_playlist(playlist_url)
     else:
-        # Nettoyer le titre pour une vidéo simple
-        video = YouTube(args.url)
-        video_title = clean_title(video.title)
-        download_path = os.path.join(os.path.expanduser("~"), "Downloads", video_title)
-        os.makedirs(download_path, exist_ok=True)
-        download_video(args.url, download_path)
+        # Si l'URL est une vidéo simple
+        try:
+            video = YouTube(playlist_url)
+            video_title = clean_title(video.title)
+
+            # Créer un dossier de téléchargement basé sur le titre de la vidéo
+            download_path = os.path.join(os.path.expanduser("~"), "Downloads", video_title)
+            os.makedirs(download_path, exist_ok=True)
+
+            download_video(playlist_url, download_path)
+        except Exception as e:
+            print(f"Erreur lors du téléchargement de la vidéo : {e}")
 
 if __name__ == "__main__":
     main()

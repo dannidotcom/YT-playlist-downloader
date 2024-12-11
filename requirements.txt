@@ -1,0 +1,5 @@
+PyQt5==5.15.11
+PyQt5-Qt5==5.15.15
+PyQt5_sip==12.16.0
+pytube==15.0.0
+pytubefix==8.8.1
